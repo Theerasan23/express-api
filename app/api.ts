@@ -15,6 +15,32 @@ const pool = mysql.createPool({
     connectionLimit: 10,
 });
 
+
+app.get('/connection', async (req: Request, res: Response) => {
+
+    try {
+       
+        const connection = await pool.getConnection();
+        connection.release();
+
+    } catch (error) {
+
+        const data = [{
+            'text': "connection failed server is down",
+            'errno': -111,
+            'code': 'ECONNREFUSED',
+            'syscall': 'connect',
+            'address': '127.0.0.1',
+            'port': 3306,
+            'fatal': true
+        }]
+
+        res.json(data);
+        process.exit(1);
+    }
+
+});
+
 app.get('/', async (req: Request, res: Response) => {
     try {
 
