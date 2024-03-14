@@ -1,10 +1,14 @@
 FROM node:alpine
 
-COPY . /app
 WORKDIR /app
 
-RUN npm i express mysql2 dotenv @types/express typescript ts-node
+COPY package*.json .
 
-EXPOSE 3000
+COPY . .
+
+RUN npm install
+
+
+EXPOSE 4333
 
 CMD [ "npm" , "start" ]
