@@ -1,10 +1,14 @@
 import express, { Request, Response } from 'express';
+import bodyParser from 'body-parser';
+import {Md5} from 'ts-md5';
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 const app = express();
+app.use(bodyParser.json());
+
 const PORT = process.env.EXPRESS_PORT;
 
 const pool = mysql.createPool({
@@ -21,6 +25,7 @@ app.get('/connection', async (req: Request, res: Response) => {
     try {
        
         const connection = await pool.getConnection();
+        res.json({ message: 'Connection to the database was successful' });
         connection.release();
 
     } catch (error) {
@@ -59,11 +64,51 @@ app.get('/', async (req: Request, res: Response) => {
     }
 });
 
-app.get('/user:id', async (req: Request, res: Response) => {
+
+// การรัน post ให้ใช้รูปแบบนี้
+app.post('/login' ,  async  (req : Request , res : Response)=>{
+
+
+    const username = req.body.username
+    const password = Md5.hashStr(req.body.password)
+    const [rows] = await pool.query("select * from user_hospitals where username=? and password = ? order by id desc limit 1",[username,password])
+    
+    const j_data = JSON.stringify(rows);
+    const [t_data] = JSON.parse(j_data)
+   
+    const return_data = {
+        "status" : true,
+        "userId" : t_data.id,
+        "login" : "success"
+    }
+
+    res.json(return_data)
+
+})
+
+app.get('/user/:id/:encrypt', async (req: Request, res: Response) => {
     try {
 
-        const [rows] = await pool.query('SELECT * FROM your_table WHERE id = ?', [req.params.id]);
-        res.json(rows);
+
+        if(req.params.encrypt != null){
+
+            const [rows] = await pool.query('SELECT * FROM user_hospitals WHERE id = ?', [req.params.id]);
+            res.json(rows);
+
+
+        }else{
+
+            const data = [{
+
+                "error": "encrypt key is required to access this endpoint",
+                "code": "ECONNREFUSED",
+            }]
+
+            res.json(data);
+
+        }
+
+        
 
     } catch (error) {
 
