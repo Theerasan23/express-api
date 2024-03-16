@@ -93,12 +93,12 @@ app.post('/login' ,  async  (req : Request , res : Response)=>{
         const password = Md5.hashStr(req.body.password)
         const [rows] = await pool.query("select * from user_hospitals where username=? and password = ? order by id desc limit 1",[username,password])
         
-        const j_data = JSON.stringify(rows);
-        const [t_data] = JSON.parse(j_data)
+        const [data] = JSON.parse( JSON.stringify(rows));
+       
     
         const return_data = {
             "status" : true,
-            "userId" : t_data.id,
+            "userId" : data.id,
             "login" : "success",
             "by" : req.ip,
             "total": Object.keys(rows).length
