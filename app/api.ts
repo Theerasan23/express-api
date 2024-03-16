@@ -36,7 +36,7 @@ app.get('/connection', async (req: Request, res: Response) => {
             'code': 'ECONNREFUSED',
             'syscall': 'connect',
             'address': '127.0.0.1',
-            'port': 3306,
+            'port': '-',
             'fatal': true
         }]
 
@@ -79,7 +79,8 @@ app.post('/login' ,  async  (req : Request , res : Response)=>{
     const return_data = {
         "status" : true,
         "userId" : t_data.id,
-        "login" : "success"
+        "login" : "success",
+        "by" : req.ip
     }
 
     res.json(return_data)
