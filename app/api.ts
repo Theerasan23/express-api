@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import {Md5} from 'ts-md5';
-import mysql from 'mysql2/promise';
+import mysql, { OkPacket } from 'mysql2/promise';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -64,26 +64,52 @@ app.get('/', async (req: Request, res: Response) => {
     }
 });
 
+// test handle 
+
+app.get('/check' , async ( req:Request , res : Response ) =>{ 
+
+    try{
+
+        const [a] = await pool.query('select count(*) as total from log_user_hospitals')
+        const [data] = JSON.parse( JSON.stringify(a) )
+        
+        console.log(data)
+        res.json(data.total)
+
+
+    }catch{
+        res.json("error")
+    }
+    
+})
+
 
 // การรัน post ให้ใช้รูปแบบนี้
 app.post('/login' ,  async  (req : Request , res : Response)=>{
 
+    try{
 
-    const username = req.body.username
-    const password = Md5.hashStr(req.body.password)
-    const [rows] = await pool.query("select * from user_hospitals where username=? and password = ? order by id desc limit 1",[username,password])
+        const username = req.body.username
+        const password = Md5.hashStr(req.body.password)
+        const [rows] = await pool.query("select * from user_hospitals where username=? and password = ? order by id desc limit 1",[username,password])
+        
+        const j_data = JSON.stringify(rows);
+        const [t_data] = JSON.parse(j_data)
     
-    const j_data = JSON.stringify(rows);
-    const [t_data] = JSON.parse(j_data)
-   
-    const return_data = {
-        "status" : true,
-        "userId" : t_data.id,
-        "login" : "success",
-        "by" : req.ip
-    }
+        const return_data = {
+            "status" : true,
+            "userId" : t_data.id,
+            "login" : "success",
+            "by" : req.ip,
+            "total": Object.keys(rows).length
+        }
 
-    res.json(return_data)
+        res.json(return_data)
+
+
+    }catch{
+        res.json([{ "error":"error select data", "status" : res.status(302) }])
+    }
 
 })
 
